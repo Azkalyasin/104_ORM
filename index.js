@@ -7,13 +7,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 app.listen(PORT, () => {
-  console.log(`server run in port ${PORT}`);
+  console.log("server run in port");
 });
 
 db.sequelize
   .sync()
   .then((result) => {
-    app.listen(3000, () => {
+    app.listen(3001, () => {
       console.log("server started");
     });
   })
@@ -24,35 +24,47 @@ db.sequelize
 app.post("/komik", async (req, res) => {
   const data = req.body;
   try {
-    const komik = await db.komik.create(data);
+    const komik = await db.Komik.create(data);
+    res.send(komik);
+  } catch (error) {}
+  res.send({ message: error.message });
+});
+
+app.get("/komik", async (req, res) => {
+  try {
+    const komik = await db.Komik.findAll();
     res.send(komik);
   } catch (error) {
     res.send({ message: error.message });
   }
 });
 
-
-app.get("/komik", async (req, res) => {
-    try {
-        const komik = await db.komik.findAll();
-        res.send(komik)
-    }catch(error){
-        res.send({message: error.message})
-    }
-})
-
 app.put('/komik/:id', async (req, res) => {
-    const id = req.params;
+    const id = req.params.id;
     const data = req.body;
-
     try {
-        const komik = await db.komik.findByPk(id);
-        if(!komik) {
-            res.status(404).send({message: "komik not found"})
+        const komik = await db.Komik.findByPk(id);
+        if (!komik){
+            res.status(404).send({ message: 'Komik not found' });
         }
         await komik.update(data)
-        res.send({message: "data berhasil di update", data})
-    }catch(error){
-        res.status(500).send(error)
+        res.send({ message: 'Komik berhasil di update', komik });
     }
-})
+    catch (error){
+        res.send({message: error.message});
+    }
+});
+
+app.delete("/komik/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const komik = await db.Komik.findByPk(id);
+    if (!komik) {
+      res.status(404).send({ message: "Komik not found" });
+    }
+    await komik.destroy();
+    res.send({ message: "Komik berhasil dihapus", });
+  } catch (error) {
+    res.status(500).send(err);
+  }
+});
