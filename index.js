@@ -40,3 +40,19 @@ app.get("/komik", async (req, res) => {
         res.send({message: error.message})
     }
 })
+
+app.put('/komik/:id', async (req, res) => {
+    const id = req.params;
+    const data = req.body;
+
+    try {
+        const komik = await db.komik.findByPk(id);
+        if(!komik) {
+            res.status(404).send({message: "komik not found"})
+        }
+        await komik.update(data)
+        res.send({message: "data berhasil di update", data})
+    }catch(error){
+        res.status(500).send(error)
+    }
+})
